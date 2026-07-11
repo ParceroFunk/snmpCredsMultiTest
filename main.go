@@ -24,6 +24,7 @@ func main() {
 	var reachables []snmpmodules.ReachableDevice
 
 	// iterate over each IP and each credential to test if one is working
+IPLoop:
 	for _, ip := range deviceIPs {
 		for _, cred := range snmpCreds {
 			result, err := snmpmanager.TestCredential(ip, cred, oids)
@@ -33,23 +34,31 @@ func main() {
 			}
 
 			fmt.Printf("[%s] cred %v succeeded:\n", ip, cred)
+
 			// Add successfull devices to a slice of Reachables struct
 			credMap, err := snmpmodules.CreateCredMapFromCredLength(cred[1:])
 			if err != nil {
 				log.Printf("[%s] cred %v failed to parse for saving: %v", ip, cred, err)
 			}
-			// Check result for reachable value constructor
+
+			// Check OID result for reachable struct value constructor
 			var response [2]string
-			for index, r := range result.Variables {
-				var ok bool
-				response[index], ok = r.Value.(string)
-				if !ok {
-					log.Printf("[%s] response %v failed to parse for saving: %v", ip, r.Value, err)
+			for index, variable := range result.Variables {
+				switch value := variable.Value.(type) {
+				case []byte:
+					response[index] = string(value)
+				case string:
+					response[index] = value
+				default:
+					log.Printf("[%s] response for %v failed to parse for saving. unkown type", ip, variable.Name)
 				}
-				fmt.Printf("  %s = %v\n", r.Name, r.Value)
 			}
+
 			// verify result for correct value alocation
 			reachables = append(reachables, snmpmodules.New(ip, cred[0], response[0], response[1], credMap))
+
+			// Continue with next IP when credential worked and was saved successfully
+			continue IPLoop
 		}
 	}
 
