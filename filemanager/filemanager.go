@@ -3,7 +3,6 @@ package filemanager
 import (
 	"bufio"
 	"encoding/json"
-	"errors"
 	"fmt"
 	"os"
 )
@@ -18,8 +17,7 @@ func (fm FileManager) ReadLines() ([]string, error) {
 	file, err := os.Open(fm.InputFilePath)
 	if err != nil {
 		fmt.Println("Could not open file!")
-		fmt.Println(err)
-		return nil, errors.New("failed to open specified file")
+		return nil, err
 	}
 
 	// when opening a file succeeded
@@ -36,8 +34,7 @@ func (fm FileManager) ReadLines() ([]string, error) {
 	}
 	err = scanner.Err()
 	if err != nil {
-		fmt.Println(err)
-		return nil, errors.New("error while scanning the file")
+		return nil, err
 	}
 
 	file.Close()
@@ -48,15 +45,13 @@ func (fm FileManager) WriteResult(data any) error {
 	// create a file with the os.Create() method
 	file, err := os.Create(fm.OutputFilePath)
 	if err != nil {
-		fmt.Println(err)
-		return errors.New("error while creating the file")
+		return err
 	}
 
 	encoder := json.NewEncoder(file)
 	err = encoder.Encode(data)
 	if err != nil {
-		fmt.Println(err)
-		return errors.New("error while creating the file")
+		return err
 	}
 
 	return nil

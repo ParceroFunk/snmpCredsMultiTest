@@ -3,19 +3,42 @@ package main
 import (
 	"fmt"
 	"log"
+	"strings"
 
+	"github.com/ParceroFunk/snmpCredsMultiTest/config"
+	"github.com/ParceroFunk/snmpCredsMultiTest/filemanager"
 	"github.com/ParceroFunk/snmpCredsMultiTest/snmpmanager"
 	"github.com/ParceroFunk/snmpCredsMultiTest/snmpmodules"
 )
 
 func main() {
-	fmt.Println("Starting SNMP testing with multiple creds on an IP list")
+	// Parse inputs from CLI flags
+	cfg := config.Parse()
 
-	// TODO: read these from files instead of hardcoding
-	deviceIPs := []string{"192.168.1.100", "192.168.1.200"}
-	snmpCreds := [][]string{
-		{"2c", "public"},
-		{"3", "username", "SHA", "authPass123", "AES", "privPass123"},
+	log.Printf("Starting SNMP testing with multiple creds on an IP list")
+
+	// Read devices from file with 1 IP per line
+	fileMgr := filemanager.New(
+		cfg.DeviceFile, // InputFilePath
+		cfg.OutputFile, // OutputFilePath
+	)
+	deviceIPs, err := fileMgr.ReadLines() // []string with IPs
+	if err != nil {
+		panic(fmt.Errorf("failed to read devices IPs file: %v", err.Error()))
+	}
+	log.Printf("Found %d devices on %q file", len(deviceIPs), fileMgr.InputFilePath)
+
+	// Read credentials from a file with 1 credential per line
+	fileMgr.InputFilePath = cfg.CredsFile
+	snmpCredsLines, err := fileMgr.ReadLines() // []string with SNMP creds
+	if err != nil {
+		panic(fmt.Errorf("failed to read SNMP credential file: %v", err.Error()))
+	}
+	log.Printf("Found %d SNMP credentials on %q file", len(snmpCredsLines), fileMgr.InputFilePath)
+	// Devide credentials by space for SNMP struct creation
+	var snmpCreds [][]string
+	for _, line := range snmpCredsLines {
+		snmpCreds = append(snmpCreds, strings.Split(line, " "))
 	}
 
 	oids := []string{snmpmanager.SysName, snmpmanager.SysDescr}
@@ -63,4 +86,8 @@ IPLoop:
 	}
 
 	fmt.Println(reachables)
+	err = fileMgr.WriteResult(reachables)
+	if err != nil {
+		log.Printf("Failed to write results to %v file: %v", fileMgr.OutputFilePath, err.Error())
+	}
 }
