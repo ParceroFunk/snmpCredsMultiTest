@@ -52,7 +52,7 @@ func getTestInputs(fileMgr *filemanager.FileManager, cfg config.Config) ([]strin
 }
 
 func save(fileMgr *filemanager.FileManager, data []snmpmodules.ReachableDevice) {
-	err := fileMgr.WriteResult(data)
+	err := fileMgr.JSONWriteResult(data)
 	if err != nil {
 		log.Printf("Failed to write results to %v file: %v", fileMgr.OutputFilePath, err)
 	}
