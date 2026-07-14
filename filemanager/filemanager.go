@@ -4,6 +4,7 @@ import (
 	"bufio"
 	"encoding/json"
 	"fmt"
+	"io"
 	"os"
 )
 
@@ -12,7 +13,7 @@ type FileManager struct {
 	OutputFilePath string
 }
 
-func (fm FileManager) ReadLines() ([]string, error) {
+func (fm *FileManager) ReadLines() ([]string, error) {
 	// open a file and return a slice of strings
 	file, err := os.Open(fm.InputFilePath)
 	if err != nil {
@@ -37,16 +38,25 @@ func (fm FileManager) ReadLines() ([]string, error) {
 		return nil, err
 	}
 
-	file.Close()
 	return lines, nil
 }
 
-func (fm FileManager) WriteResult(data any) error {
+// OpenWriter opens a path for writing as a io.WriteCloser interface
+func (fm *FileManager) OpenWriter() (io.WriteCloser, error) {
+	f, err := os.Create(fm.OutputFilePath)
+	if err != nil {
+		return nil, fmt.Errorf("filemanager: opening %q: %w", fm.OutputFilePath, err)
+	}
+	return f, nil
+}
+
+func (fm *FileManager) WriteResult(data any) error {
 	// create a file with the os.Create() method
 	file, err := os.Create(fm.OutputFilePath)
 	if err != nil {
 		return err
 	}
+	defer file.Close()
 
 	encoder := json.NewEncoder(file)
 	err = encoder.Encode(data)

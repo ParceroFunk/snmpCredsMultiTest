@@ -8,6 +8,7 @@ import (
 	"github.com/ParceroFunk/snmpCredsMultiTest/discovery"
 	"github.com/ParceroFunk/snmpCredsMultiTest/filemanager"
 	"github.com/ParceroFunk/snmpCredsMultiTest/snmpmodules"
+	"github.com/ParceroFunk/snmpCredsMultiTest/utils"
 )
 
 func main() {
@@ -24,7 +25,12 @@ func main() {
 	// loop over IP and creds for getting a []snmpmodules.ReachableDevice
 	reachables := discovery.Run(deviceIPs, snmpCreds, cfg.MaxConcurrency)
 
-	save(&fileMgr, reachables)
+	// save(&fileMgr, reachables)
+
+	err := exportCSV(&fileMgr, reachables, "ip,sysName", false)
+	if err != nil {
+		log.Printf("Failed to write CSV export: %v", err)
+	}
 }
 
 func getTestInputs(fileMgr *filemanager.FileManager, cfg config.Config) ([]string, [][]string) {
@@ -51,9 +57,15 @@ func getTestInputs(fileMgr *filemanager.FileManager, cfg config.Config) ([]strin
 	return deviceIPs, snmpCreds
 }
 
-func save(fileMgr *filemanager.FileManager, data []snmpmodules.ReachableDevice) {
-	err := fileMgr.WriteResult(data)
+// exportCSV opens path via fileMgr and writes data to it as CSV, including
+// only the comma-separated fields, in order.
+func exportCSV(fileMgr *filemanager.FileManager, data []snmpmodules.ReachableDevice, fields string, header bool) error {
+	w, err := fileMgr.OpenWriter()
 	if err != nil {
-		log.Printf("Failed to write results to %v file: %v", fileMgr.OutputFilePath, err)
+		return err
 	}
+	defer w.Close()
+
+	keys := strings.Split(fields, ",")
+	return utils.ToCSV(w, data, keys, header)
 }

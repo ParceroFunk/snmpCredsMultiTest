@@ -1,13 +1,13 @@
 # snmpCredsMultiTest
 
 This is GoLang CLI tool for testing multiple SNMP credentials (independently from
-their version) on list of multiple IP address, and writes out which
+their version) on list of multiple IP addresses, and writes out which
 IP/credential pairs are reachable.
 
 For each IP, credentials are tried in order until one succeeds; the tool
 then moves on to the next credential/device pair. IPs are tested in
 parallel, bounded by a configurable worker limit. Results are written to a
-JSON file.
+CSV file.
 
 ## Requirements
 
@@ -34,14 +34,14 @@ go build -o snmpCredsMultiTest .
 |-------------------|---------------------|-----------------------------------------------------------|
 | `-d`, `-devices`   | `devices.txt`       | Input file with the list of device IPs (one per line)     |
 | `-c`, `-creds`     | `creds.txt`         | Input file with SNMP credentials (one per line)           |
-| `-o`, `-output`    | `reachables.json`   | Output JSON file with reachable device data                |
+| `-o`, `-output`    | `reachables.csv`   | Output JSON file with reachable device data                |
 | `-w`, `-workers`   | `20`                 | How many IPs are tested in parallel                        |
 | `-h`, `-help`      | —                    | Show usage and exit                                         |
 
 Example:
 
 ```bash
-./snmpCredsMultiTest -d hosts.txt -c snmp_creds.txt -o results.json -w 50
+./snmpCredsMultiTest -d hosts.txt -c snmp_creds.txt -o results.csv -w 50
 ```
 
 Run `./snmpCredsMultiTest -h` at any time to see this same list from the CLI.

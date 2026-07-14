@@ -22,7 +22,7 @@ const (
 	usageDeviceFile   = "input file with devices IP list"
 	defaultCredsFile  = "creds.txt"
 	usageCredsFile    = "input file with SNMP credentials list"
-	defaultOutputFile = "reachables.json"
+	defaultOutputFile = "reachables.csv"
 	usageOutputFile   = "output JSON file with reachable devices data"
 	// Concurrency values
 	defaultMaxConcurrency = 20
