@@ -25,11 +25,14 @@ func main() {
 	// loop over IP and creds for getting a []snmpmodules.ReachableDevice
 	reachables := discovery.Run(deviceIPs, snmpCreds, cfg.MaxConcurrency)
 
-	// save reachable devices to CSV with "ip,hostname"
-	err := exportCSV(&fileMgr, reachables, "ip,hostname", false)
+	// convert reachable devices to CSV with "ip,hostname", exclude headers
+	csvData, err := getCSV(reachables, "ip,hostname", false)
 	if err != nil {
 		log.Printf("Failed to write CSV export: %v", err)
 	}
+
+	// save resulting CSV data into output file
+	save(&fileMgr, csvData)
 }
 
 func getTestInputs(fileMgr *filemanager.FileManager, cfg config.Config) ([]string, [][]string) {
@@ -56,15 +59,17 @@ func getTestInputs(fileMgr *filemanager.FileManager, cfg config.Config) ([]strin
 	return deviceIPs, snmpCreds
 }
 
-// exportCSV opens path via fileMgr and writes data to it as CSV, including
-// only the comma-separated fields, in order.
-func exportCSV(fileMgr *filemanager.FileManager, data []snmpmodules.ReachableDevice, fields string, header bool) error {
-	w, err := fileMgr.OpenWriter()
-	if err != nil {
-		return err
-	}
-	defer w.Close()
-
+// getCSV takes JSON-like data of reachable struct and returns a [][]string,
+// gettin it ready for a CSV file writting. Helper function for case this project.
+func getCSV(data []snmpmodules.ReachableDevice, fields string, header bool) ([][]string, error) {
 	keys := strings.Split(fields, ",")
-	return utils.ToCSV(w, data, keys, header)
+	csvData, err := utils.ToCSV(data, keys, header)
+	return csvData, err
+}
+
+func save(fileMgr *filemanager.FileManager, data [][]string) {
+	err := fileMgr.WriteResult(data)
+	if err != nil {
+		log.Printf("Failed to write results to %v file: %v", fileMgr.OutputFilePath, err)
+	}
 }

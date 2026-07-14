@@ -3,64 +3,49 @@
 package utils
 
 import (
-	"encoding/csv"
 	"encoding/json"
 	"fmt"
-	"io"
 	"strconv"
 	"strings"
 )
 
-// ToCSV writes data — any value that can be JSON-marshaled into a list of
-// objects, such as []snmpmodules.ReachableDevice — to w as CSV, including
-// only the fields named in keys, in the order given.
+// ToCSV returns a [][]string from data — any value that can be JSON-marshaled
+// into a list of objects, such as any go struct — ready for io.Writer interface
+// when needed.
 //
 // keys must match the JSON key names produced by data's `json:"..."` tags,
 // not the Go struct field names, since ToCSV operates on data's marshaled
 // JSON representation rather than the struct itself.
-func ToCSV(w io.Writer, data any, keys []string, header bool) error {
+func ToCSV(data any, keys []string, header bool) ([][]string, error) {
+	// result variable
+	var csvData [][]string
+
 	rows, err := toRowMaps(data)
 	if err != nil {
-		return fmt.Errorf("utils: converting data to rows: %w", err)
+		return nil, fmt.Errorf("utils: converting data to rows: %w", err)
 	}
 
 	if len(rows) > 0 {
 		unknown := unknownKeys(rows[0], keys)
 		if len(unknown) > 0 {
-			return fmt.Errorf("utils: unknown CSV field(s): %s", strings.Join(unknown, ", "))
+			return nil, fmt.Errorf("utils: unknown CSV field(s): %s", strings.Join(unknown, ", "))
 		}
 	}
-
-	cw := csv.NewWriter(w)
-	defer cw.Flush()
 
 	// optional: add header to CSV file
 	if header {
-		err = cw.Write(keys)
-		if err != nil {
-			return fmt.Errorf("utils: writing CSV header: %w", err)
-		}
+		csvData = append(csvData, keys)
 	}
 
-	for i, row := range rows {
+	for _, row := range rows {
 		record := make([]string, len(keys))
 		for j, key := range keys {
 			record[j] = stringify(row[key])
 		}
-		if err := cw.Write(record); err != nil {
-			return fmt.Errorf("utils: writing CSV row %d: %w", i, err)
-		}
+		csvData = append(csvData, record)
 	}
 
-	// csv.Writer buffers internally; Write() calls above can fail to
-	// surface an underlying io error until Flush() runs. Check Error()
-	// after flushing so a failed write to a full disk, closed pipe, etc.
-	// isn't silently dropped.
-	if err := cw.Error(); err != nil {
-		return fmt.Errorf("utils: flushing CSV writer: %w", err)
-	}
-
-	return nil
+	return csvData, nil
 }
 
 // toRowMaps normalizes arbitrary JSON-marshalable data into a slice of

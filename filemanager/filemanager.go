@@ -4,7 +4,6 @@ import (
 	"bufio"
 	"encoding/json"
 	"fmt"
-	"io"
 	"os"
 )
 
@@ -39,15 +38,6 @@ func (fm *FileManager) ReadLines() ([]string, error) {
 	}
 
 	return lines, nil
-}
-
-// OpenWriter opens a path for writing as a io.WriteCloser interface
-func (fm *FileManager) OpenWriter() (io.WriteCloser, error) {
-	f, err := os.Create(fm.OutputFilePath)
-	if err != nil {
-		return nil, fmt.Errorf("filemanager: opening %q: %w", fm.OutputFilePath, err)
-	}
-	return f, nil
 }
 
 func (fm *FileManager) WriteResult(data any) error {
