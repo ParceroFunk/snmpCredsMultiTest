@@ -1,5 +1,5 @@
 // Package utils holds small, reusable helpers that don't belong to any
-// single domain package (filemanager, snmpmanager, snmpmodules...).
+// single domain package.
 package utils
 
 import (

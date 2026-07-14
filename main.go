@@ -25,9 +25,8 @@ func main() {
 	// loop over IP and creds for getting a []snmpmodules.ReachableDevice
 	reachables := discovery.Run(deviceIPs, snmpCreds, cfg.MaxConcurrency)
 
-	// save(&fileMgr, reachables)
-
-	err := exportCSV(&fileMgr, reachables, "ip,sysName", false)
+	// save reachable devices to CSV with "ip,hostname"
+	err := exportCSV(&fileMgr, reachables, "ip,hostname", false)
 	if err != nil {
 		log.Printf("Failed to write CSV export: %v", err)
 	}
