@@ -68,7 +68,7 @@ func getCSV(data []snmpmodules.ReachableDevice, fields string, header bool) ([][
 }
 
 func save(fileMgr *filemanager.FileManager, data [][]string) {
-	err := fileMgr.WriteResult(data)
+	err := fileMgr.CSVWriteResult(data)
 	if err != nil {
 		log.Printf("Failed to write results to %v file: %v", fileMgr.OutputFilePath, err)
 	}
