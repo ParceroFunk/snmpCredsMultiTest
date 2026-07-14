@@ -2,6 +2,7 @@ package main
 
 import (
 	"log"
+	"regexp"
 	"strings"
 
 	"github.com/ParceroFunk/snmpCredsMultiTest/config"
@@ -26,13 +27,23 @@ func main() {
 	reachables := discovery.Run(deviceIPs, snmpCreds, cfg.MaxConcurrency)
 
 	// convert reachable devices to CSV with "ip,hostname", exclude headers
-	csvData, err := getCSV(reachables, "ip,hostname", false)
+	csvData, err := getCSV(reachables, "ip,hostname,description", false)
 	if err != nil {
 		log.Printf("Failed to write CSV export: %v", err)
 	}
 
+	// filter by vendor
+	var vendorData [][]string
+	vendorRegEx := "[cC]isco"
+	re := regexp.MustCompile(vendorRegEx)
+	for _, row := range csvData {
+		if re.MatchString(row[2]) {
+			vendorData = append(vendorData, row)
+		}
+	}
+
 	// save resulting CSV data into output file
-	save(&fileMgr, csvData)
+	save(&fileMgr, vendorData)
 }
 
 func getTestInputs(fileMgr *filemanager.FileManager, cfg config.Config) ([]string, [][]string) {
