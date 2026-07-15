@@ -27,6 +27,17 @@ func main() {
 	reachables := discovery.Run(deviceIPs, snmpCreds, cfg.MaxConcurrency)
 	log.Printf("Found %d reachable devices", len(reachables))
 
+	// print the first 5 entries of []snmpmodules.ReachableDevice (reachables)
+	// Safely print up to the first 5 items
+	limit := 5
+	if len(reachables) < 5 {
+		limit = len(reachables)
+	}
+
+	for i := 0; i < limit; i++ {
+		log.Printf("Reachable %d: %+v\n", i+1, reachables[i])
+	}
+
 	// convert reachable devices to CSV with "ip,hostname", exclude headers
 	csvData, err := getCSV(reachables, "ip_address,hostname,description", false)
 	if err != nil {
