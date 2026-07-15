@@ -27,10 +27,10 @@ func main() {
 	reachables := discovery.Run(deviceIPs, snmpCreds, cfg.MaxConcurrency)
 	log.Printf("Found %d reachable devices", len(reachables))
 
-	// print the first 5 entries of []snmpmodules.ReachableDevice (reachables)
-	// Safely print up to the first 5 items
-	limit := 5
-	if len(reachables) < 5 {
+	// print the first 3 entries of []snmpmodules.ReachableDevice (reachables)
+	// Safely print up to the first 3 items
+	limit := 3
+	if len(reachables) < 3 {
 		limit = len(reachables)
 	}
 
@@ -46,7 +46,7 @@ func main() {
 
 	// filter by vendor sysObjectID
 	var vendorData [][]string
-	vendorRegEx := `enterprises\.9`
+	vendorRegEx := `(enterprises\.9|\.1\.3\.6\.1\.4\.1\.9)`
 	re := regexp.MustCompile(vendorRegEx)
 	for _, row := range csvData {
 		if re.MatchString(row[2]) {
