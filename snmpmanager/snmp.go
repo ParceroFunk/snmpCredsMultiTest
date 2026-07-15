@@ -12,8 +12,9 @@ import (
 
 // constants for SNMP testing
 const (
-	SysName  string = "1.3.6.1.2.1.1.5.0"
-	SysDescr string = "1.3.6.1.2.1.1.1.0"
+	SysName     string = "1.3.6.1.2.1.1.5.0"
+	SysDescr    string = "1.3.6.1.2.1.1.1.0"
+	SysObjectID string = "1.3.6.1.2.1.1.1.2"
 )
 
 // buildSNMPParams builds a *gosnmp.GoSNMP configured for either SNMPv2c or

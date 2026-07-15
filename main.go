@@ -16,7 +16,7 @@ func main() {
 	// Parse inputs from CLI flags
 	cfg := config.Parse()
 
-	log.Printf("Starting SNMP testing with multiple creds on an IP list")
+	log.Print("Starting SNMP testing with multiple creds on an IP list")
 
 	fileMgr := filemanager.New(cfg.DeviceFile, cfg.OutputFile)
 
@@ -25,6 +25,7 @@ func main() {
 
 	// loop over IP and creds for getting a []snmpmodules.ReachableDevice
 	reachables := discovery.Run(deviceIPs, snmpCreds, cfg.MaxConcurrency)
+	log.Printf("Found %d reachable devices", len(reachables))
 
 	// convert reachable devices to CSV with "ip,hostname", exclude headers
 	csvData, err := getCSV(reachables, "ip_address,hostname,description", false)
@@ -32,18 +33,25 @@ func main() {
 		log.Printf("Failed to write CSV export: %v", err)
 	}
 
-	// filter by vendor
+	// filter by vendor sysObjectID
 	var vendorData [][]string
-	vendorRegEx := "[cC]isco"
+	vendorRegEx := `enterprises\.9`
 	re := regexp.MustCompile(vendorRegEx)
 	for _, row := range csvData {
 		if re.MatchString(row[2]) {
 			vendorData = append(vendorData, row)
 		}
 	}
+	log.Printf("Found %d %v reachable devices, after filtering by sysObjectID", len(vendorData), vendorRegEx)
 
 	// save resulting CSV data into output file
-	save(&fileMgr, vendorData)
+	err = save(&fileMgr, vendorData)
+	if err != nil {
+		log.Printf("Failed to write results to %v file: %v", fileMgr.OutputFilePath, err)
+	}
+
+	// end exection
+	log.Printf("Exection complete!")
 }
 
 func getTestInputs(fileMgr *filemanager.FileManager, cfg config.Config) ([]string, [][]string) {
@@ -78,9 +86,11 @@ func getCSV(data []snmpmodules.ReachableDevice, fields string, header bool) ([][
 	return csvData, err
 }
 
-func save(fileMgr *filemanager.FileManager, data [][]string) {
+func save(fileMgr *filemanager.FileManager, data [][]string) error {
 	err := fileMgr.CSVWriteResult(data)
 	if err != nil {
-		log.Printf("Failed to write results to %v file: %v", fileMgr.OutputFilePath, err)
+		return err
 	}
+
+	return nil
 }

@@ -13,7 +13,7 @@ import (
 // maxGoRoutines); credentials within a single IP are tested
 // sequentally, stoping at the first one that succeeds.
 func Run(ips []string, creds [][]string, maxGoRoutines int) []snmpmodules.ReachableDevice {
-	oids := []string{snmpmanager.SysName, snmpmanager.SysDescr}
+	oids := []string{snmpmanager.SysName, snmpmanager.SysObjectID}
 
 	resultsCh := make(chan snmpmodules.ReachableDevice, len(ips))
 	sem := make(chan struct{}, maxGoRoutines)
