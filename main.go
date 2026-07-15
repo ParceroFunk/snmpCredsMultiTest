@@ -27,7 +27,7 @@ func main() {
 	reachables := discovery.Run(deviceIPs, snmpCreds, cfg.MaxConcurrency)
 
 	// convert reachable devices to CSV with "ip,hostname", exclude headers
-	csvData, err := getCSV(reachables, "ip,hostname,description", false)
+	csvData, err := getCSV(reachables, "ip_address,hostname,description", false)
 	if err != nil {
 		log.Printf("Failed to write CSV export: %v", err)
 	}
